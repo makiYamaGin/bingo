@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Online - 90 Bolas</title>
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --secondary: #ff1493;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --called-bg: #ff1493;
+            --current-called-bg: #16a34a;
+            --called-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--secondary);
+            letter-spacing: -1px;
+            background: white;
+            padding: 4px 16px;
+            border-radius: 9px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+            align-items: start;
+            gap: 18px;
+            max-width: 1320px;
+            width: 100%;
+        }
+
+        /* Panel izquierdo */
+        .left-panel {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .current-ball-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .current-label {
+            font-size: 1rem;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* Efecto de giro (Bombo digital) */
+        .current-ball-container {
+            width: 132px;
+            height: 132px;
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff1493, #8a2be2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+            transition: transform 0.1s ease;
+        }
+
+        .current-ball-container.spinning {
+            animation: girarBombo 0.4s infinite linear;
+        }
+
+        @keyframes girarBombo {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .current-ball {
+            font-size: 4rem;
+            font-weight: 900;
+            color: white;
+            line-height: 1;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            box-shadow: 0 4px 10px rgba(138, 43, 226, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.repeat-btn {
+            background-color: #ff8c00;
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+        }
+
+        button:disabled {
+            background-color: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .status-info {
+            margin-top: 12px;
+            font-size: 1rem;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        /* Sección de últimas bolas cantadas estilo Bingu */
+        .recent-balls-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .recent-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .recent-list {
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .recent-ball {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            color: #475569;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .recent-ball.active {
+            background-color: var(--secondary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .secondary-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .secondary-controls button {
+            flex: 1;
+            padding: 10px 7px;
+            font-size: 0.85rem;
+        }
+
+        button.history-btn {
+            background-color: #0f766e;
+            box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
+        }
+
+        button.new-game-btn {
+            background-color: #475569;
+            box-shadow: 0 4px 10px rgba(71, 85, 105, 0.25);
+        }
+
+        .history-panel {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .history-panel[hidden] {
+            display: none;
+        }
+
+        .history-heading {
+            margin: 0 0 10px;
+            color: #1e293b;
+            font-size: 1rem;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .history-number {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #334155;
+            font-weight: bold;
+        }
+
+        .history-number:first-child {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .players-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .players-heading {
+            margin: 0 0 12px;
+            color: #1e293b;
+            font-size: 1.05rem;
+        }
+
+        .player-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .player-form input {
+            min-width: 0;
+            flex: 1;
+            padding: 11px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        .player-form button {
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            background: #0f766e;
+            box-shadow: 0 3px 8px rgba(15, 118, 110, 0.2);
+        }
+
+        .player-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .player-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .player-win-button {
+            flex: 1;
+            min-width: 0;
+            padding: 11px 12px;
+            overflow-wrap: anywhere;
+            text-align: left;
+            font-size: 1rem;
+            background: #166534;
+            box-shadow: 0 3px 8px rgba(22, 101, 52, 0.2);
+        }
+
+        .player-remove-button {
+            width: 44px;
+            padding: 8px;
+            font-size: 1rem;
+            background: #64748b;
+            box-shadow: none;
+        }
+
+        .players-empty {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .winner-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.78);
+        }
+
+        .winner-overlay[hidden] {
+            display: none;
+        }
+
+        .fireworks-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .winner-dialog {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 520px);
+            padding: 35px 24px 24px;
+            border-radius: 16px;
+            background: #fff;
+            text-align: center;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.3);
+            animation: winner-arrives 350ms ease-out both;
+        }
+
+        .winner-crown {
+            margin: 0 0 8px;
+            color: #d97706;
+            font-size: 2rem;
+        }
+
+        .winner-message {
+            margin: 0 0 24px;
+            color: #166534;
+            font-size: clamp(1.7rem, 7vw, 2.8rem);
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+        }
+
+        .winner-close-button {
+            padding: 11px 22px;
+            font-size: 1rem;
+            background: #334155;
+            box-shadow: none;
+        }
+
+        @keyframes winner-arrives {
+            from { opacity: 0; transform: translateY(14px) scale(0.94); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .winner-dialog { animation: none; }
+        }
+
+        /* Panel derecho: Tablero gigante */
+        .board-card {
+            min-width: 0;
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(9, minmax(0, 1fr));
+            aspect-ratio: 1.46;
+            gap: 5px;
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .cell.called {
+            background-color: var(--called-bg);
+            color: var(--called-text);
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
+        }
+
+        .cell.called.current-called {
+            background-color: var(--current-called-bg);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 8px;
+            }
+
+            .main-layout {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 12px;
+            }
+
+            .left-panel {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                align-items: start;
+                gap: 10px;
+            }
+
+            .current-ball-card {
+                grid-column: 1 / -1;
+                padding: 14px;
+            }
+
+            .current-ball-container {
+                width: 112px;
+                height: 112px;
+            }
+
+            .current-ball {
+                font-size: 3.5rem;
+            }
+
+            .history-panel,
+            .players-section {
+                min-width: 0;
+                padding: 12px;
+            }
+
+            .recent-balls-section {
+                padding: 12px;
+            }
+
+            .board-card {
+                padding: 12px;
+            }
+
+            .board {
+                aspect-ratio: 10 / 9;
+                gap: 3px;
+            }
+
+            .cell {
+                border-radius: 4px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .left-panel {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .current-ball-card {
+                grid-column: auto;
+            }
+
+            .board-card {
+                padding: 8px;
+            }
+
+            .board {
+                gap: 2px;
+            }
+
+            .cell {
+                font-size: 0.75rem;
+            }
+
+            .secondary-controls {
+                gap: 6px;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            body {
+                padding: 20px;
+            }
+
+            .main-layout {
+                grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+                max-width: 1760px;
+                gap: 24px;
+            }
+
+            .current-ball-card,
+            .board-card {
+                padding: 24px;
+            }
+
+            .current-ball-container {
+                width: 160px;
+                height: 160px;
+            }
+
+            .current-ball {
+                font-size: 5rem;
+            }
+
+            .board {
+                gap: 8px;
+            }
+
+            .cell {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">BINGO FAMILIA GENDA </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- Panel Izquierdo -->
+        <div class="left-panel">
+            <div class="current-ball-card">
+                <div class="current-label">Bola Actual</div>
+                
+                <!-- Contenedor del número con efecto giratorio -->
+                <div id="ballContainer" class="current-ball-container">
+                    <div id="currentBallDisplay" class="current-ball">--</div>
+                </div>
+                
+                <div class="controls">
+                    <button id="nextBtn" onclick="sacarBolaConEfecto()">Sacar Siguiente Bola</button>
+                    <button id="repeatBtn" class="repeat-btn" onclick="repetirVoz()" disabled>🔊 Repetir Canto</button>
+                </div>
+                <div class="secondary-controls">
+                    <button id="historyBtn" class="history-btn" onclick="alternarHistorial()" aria-expanded="false" aria-controls="historyPanel">Ver historial</button>
+                    <button class="new-game-btn" onclick="jugarDeNuevo()">Jugar de nuevo</button>
+                </div>
+                <div class="status-info" id="statusInfo">Bolas restantes: 90</div>
+            </div>
+
+            <section id="historyPanel" class="history-panel" aria-labelledby="historyHeading" hidden>
+                <h2 id="historyHeading" class="history-heading">Orden de bolas cantadas</h2>
+                <div id="fullHistoryList" class="history-list" aria-live="polite"></div>
+            </section>
+
+            <!-- Últimas bolas cantadas -->
+            <div class="recent-balls-section">
+                <div class="recent-title">Últimas Bolas</div>
+                <div class="recent-list" id="recentList">
+                    <div class="recent-ball">-</div>
+                    <div class="recent-ball">-</div>
+                    <div class="recent-ball">-</div>
+                </div>
+            </div>
+
+            <section class="players-section" aria-labelledby="playersHeading">
+                <h2 id="playersHeading" class="players-heading">Jugadores</h2>
+                <form id="playerForm" class="player-form">
+                    <input id="playerNameInput" type="text" maxlength="40" placeholder="Nombre del jugador" aria-label="Nombre del jugador" required>
+                    <button type="submit">Añadir</button>
+                </form>
+                <div id="playerList" class="player-list" aria-live="polite">
+                    <p class="players-empty">Añade jugadores para poder anunciar al ganador.</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Panel Derecho: Tablero general -->
+        <div class="board-card">
+            <div style="font-size: 1.1rem; font-weight: bold; color: #1e293b; margin-bottom: 15px;">Tablero General (1 - 90)</div>
+            <div class="board" id="board"></div>
+        </div>
+    </div>
+
+    <div id="winnerOverlay" class="winner-overlay" hidden>
+        <canvas id="fireworksCanvas" class="fireworks-canvas" aria-hidden="true"></canvas>
+        <section class="winner-dialog" role="dialog" aria-modal="true" aria-labelledby="winnerMessage">
+            <p class="winner-crown" aria-hidden="true">GANADOR</p>
+            <h2 id="winnerMessage" class="winner-message"></h2>
+            <button id="winnerCloseButton" class="winner-close-button" type="button">Cerrar</button>
+        </section>
+    </div>
+
+    <script>
+        let bolasDisponibles = [];
+        let ultimaBola = null;
+        let historialBolas = [];
+        let jugadores = [];
+        let fireworksAnimation = null;
+        let sonidoBombo = null;
+        let intervaloSorteo = null;
+
+        function inicializarJuego() {
+            if (intervaloSorteo) clearInterval(intervaloSorteo);
+            intervaloSorteo = null;
+            detenerSonidoBombo();
+            document.getElementById('ballContainer').classList.remove('spinning');
+            bolasDisponibles = [];
+            for (let i = 1; i <= 90; i++) {
+                bolasDisponibles.push(i);
+            }
+            ultimaBola = null;
+            historialBolas = [];
+            
+            document.getElementById('currentBallDisplay').innerText = '--';
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('repeatBtn').disabled = true;
+            document.getElementById('statusInfo').innerText = 'Bolas restantes: 90';
+            document.getElementById('historyPanel').hidden = true;
+            document.getElementById('historyBtn').innerText = 'Ver historial';
+            document.getElementById('historyBtn').setAttribute('aria-expanded', 'false');
+            actualizarHistorialUI();
+            actualizarHistorialCompletoUI();
+            crearTablero();
+        }
+
+        function jugarDeNuevo() {
+            if (bolasDisponibles.length < 90 && !confirm('¿Quieres empezar una partida nueva? Se borrará el historial de esta partida.')) {
+                return;
+            }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            inicializarJuego();
+        }
+
+        function alternarHistorial() {
+            const panel = document.getElementById('historyPanel');
+            const button = document.getElementById('historyBtn');
+            panel.hidden = !panel.hidden;
+            button.innerText = panel.hidden ? 'Ver historial' : 'Ocultar historial';
+            button.setAttribute('aria-expanded', String(!panel.hidden));
+        }
+
+        function crearTablero() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            for (let i = 1; i <= 90; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}`;
+                cell.innerText = i;
+                board.appendChild(cell);
+            }
+        }
+
+        // Efecto de giro antes de dar el número
+        function sacarBolaConEfecto() {
+            if (bolasDisponibles.length === 0) {
+                alert("¡Se han cantado todas las bolas!");
+                document.getElementById('nextBtn').disabled = true;
+                return;
+            }
+
+            const nextBtn = document.getElementById('nextBtn');
+            const ballContainer = document.getElementById('ballContainer');
+            const display = document.getElementById('currentBallDisplay');
+            
+            nextBtn.disabled = true;
+            ballContainer.classList.add('spinning');
+            iniciarSonidoBombo();
+
+            // Simular un pequeño giro rápido de números aleatorios por 0.8 segundos
+            let contadorGiro = 0;
+            intervaloSorteo = setInterval(() => {
+                let tempNum = Math.floor(Math.random() * 90) + 1;
+                display.innerText = tempNum;
+                contadorGiro++;
+                
+                if (contadorGiro > 6) {
+                    clearInterval(intervaloSorteo);
+                    intervaloSorteo = null;
+                    detenerSonidoBombo();
+                    ballContainer.classList.remove('spinning');
+                    finalizarSacarBola();
+                    nextBtn.disabled = false;
+                }
+            }, 120);
+        }
+
+        function iniciarSonidoBombo() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            try {
+                detenerSonidoBombo();
+                const audio = new AudioContext();
+                const inicio = audio.currentTime;
+                const duracion = 0.88;
+                const buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.04), audio.sampleRate);
+                const ruido = buffer.getChannelData(0);
+                for (let i = 0; i < ruido.length; i++) ruido[i] = Math.random() * 2 - 1;
+
+                let time = inicio;
+                while (time < inicio + duracion) {
+                    time += 0.018 + Math.random() * 0.035;
+                    const impactTime = Math.min(time, inicio + duracion - 0.05);
+
+                    const source = audio.createBufferSource();
+                    const filter = audio.createBiquadFilter();
+                    const gain = audio.createGain();
+                    source.buffer = buffer;
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 700 + Math.random() * 1500;
+                    filter.Q.value = 0.7 + Math.random() * 1.2;
+                    gain.gain.setValueAtTime(0.0001, impactTime);
+                    gain.gain.linearRampToValueAtTime(0.035 + Math.random() * 0.045, impactTime + 0.003);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, impactTime + 0.035);
+                    source.connect(filter).connect(gain).connect(audio.destination);
+                    source.start(impactTime);
+                    source.stop(impactTime + 0.04);
+
+                    const tap = audio.createOscillator();
+                    const tapGain = audio.createGain();
+                    tap.type = 'sine';
+                    tap.frequency.value = 180 + Math.random() * 360;
+                    tapGain.gain.setValueAtTime(0.0001, impactTime);
+                    tapGain.gain.linearRampToValueAtTime(0.025 + Math.random() * 0.025, impactTime + 0.002);
+                    tapGain.gain.exponentialRampToValueAtTime(0.0001, impactTime + 0.025);
+                    tap.connect(tapGain).connect(audio.destination);
+                    tap.start(impactTime);
+                    tap.stop(impactTime + 0.03);
+                }
+
+                sonidoBombo = { audio };
+                window.setTimeout(() => {
+                    if (sonidoBombo?.audio === audio) detenerSonidoBombo();
+                }, duracion * 1000);
+            } catch (error) {
+                console.warn('No se pudo reproducir el sonido del bombo.', error);
+            }
+        }
+
+        function detenerSonidoBombo() {
+            if (!sonidoBombo) return;
+            const sonidoActivo = sonidoBombo;
+            sonidoBombo = null;
+            sonidoActivo.audio.close();
+        }
+
+        function finalizarSacarBola() {
+            const randomIndex = Math.floor(Math.random() * bolasDisponibles.length);
+            ultimaBola = bolasDisponibles.splice(randomIndex, 1)[0];
+
+            // Mostrar número real seleccionado
+            document.getElementById('currentBallDisplay').innerText = ultimaBola;
+            
+            // Marcar en el tablero principal
+            const previousCurrentCell = document.querySelector('.cell.current-called');
+            if (previousCurrentCell) previousCurrentCell.classList.remove('current-called');
+            const cell = document.getElementById(`cell-${ultimaBola}`);
+            if (cell) {
+                cell.classList.add('called', 'current-called');
+            }
+
+            // Conservar la secuencia completa; la vista lateral muestra solo las tres más recientes.
+            historialBolas.unshift(ultimaBola);
+            actualizarHistorialUI();
+            actualizarHistorialCompletoUI();
+
+            document.getElementById('statusInfo').innerText = `Bolas restantes: ${bolasDisponibles.length}`;
+            document.getElementById('repeatBtn').disabled = false;
+
+            // Cantar tradicionalmente
+            cantarNumeroTradicional(ultimaBola);
+
+            if (bolasDisponibles.length === 0) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        function actualizarHistorialUI() {
+            const container = document.getElementById('recentList');
+            container.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const div = document.createElement('div');
+                div.className = 'recent-ball';
+                if (historialBolas[i] !== undefined) {
+                    div.innerText = historialBolas[i];
+                    if (i === 0) div.classList.add('active'); // La más reciente resaltada
+                } else {
+                    div.innerText = '-';
+                }
+                container.appendChild(div);
+            }
+        }
+
+        function actualizarHistorialCompletoUI() {
+            const container = document.getElementById('fullHistoryList');
+            container.innerHTML = '';
+            historialBolas.forEach(numero => {
+                const div = document.createElement('div');
+                div.className = 'history-number';
+                div.innerText = numero;
+                container.appendChild(div);
+            });
+            if (historialBolas.length === 0) {
+                const emptyMessage = document.createElement('span');
+                emptyMessage.innerText = 'Todavía no se han cantado bolas.';
+                container.appendChild(emptyMessage);
+            }
+        }
+
+        function numeroALetras(num) {
+            const unidades = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
+            const decenas = ["", "diez", "veinte", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
+            const especiales = {
+                11: "once", 12: "doce", 13: "trece", 14: "catorce", 15: "quince",
+                16: "dieciséis", 17: "diecisiete", 18: "dieciocho", 19: "diecinueve",
+                21: "veintiuno", 22: "veintidós", 23: "veintitrés", 24: "veinticuatro", 
+                25: "veinticinco", 26: "veintiséis", 27: "veintisiete", 28: "veintiocho", 29: "veintinueve"
+            };
+
+            if (num === 90) return "noventa";
+            if (especiales[num]) return especiales[num];
+            if (num < 10) return unidades[num];
+
+            let d = Math.floor(num / 10);
+            let u = num % 10;
+
+            if (u === 0) return decenas[d];
+            if (d === 1) return "dieci" + unidades[u];
+            if (d === 2) return "veinti" + unidades[u];
+            return decenas[d] + " y " + unidades[u];
+        }
+
+        function cantarNumeroTradicional(numero) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+
+                let palabra = numeroALetras(numero);
+                let strNum = numero.toString();
+                let digitosText = numero < 10 ? strNum : `${strNum.charAt(0)} y ${strNum.charAt(1)}`;
+                let fraseCanto = `${palabra}. ${digitosText}`;
+
+                const utterance = new SpeechSynthesisUtterance(fraseCanto);
+                utterance.lang = 'es-ES';
+                utterance.rate = 0.85;
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function repetirVoz() {
+            if (ultimaBola !== null) {
+                cantarNumeroTradicional(ultimaBola);
+            }
+        }
+
+        function agregarJugador(event) {
+            event.preventDefault();
+            const input = document.getElementById('playerNameInput');
+            const nombre = input.value.trim();
+            if (!nombre) return;
+
+            if (jugadores.some(jugador => jugador.toLocaleLowerCase() === nombre.toLocaleLowerCase())) {
+                input.setCustomValidity('Ese jugador ya está en la lista.');
+                input.reportValidity();
+                input.setCustomValidity('');
+                return;
+            }
+
+            jugadores.push(nombre);
+            input.value = '';
+            renderizarJugadores();
+            input.focus();
+        }
+
+        function renderizarJugadores() {
+            const list = document.getElementById('playerList');
+            list.replaceChildren();
+
+            if (jugadores.length === 0) {
+                const emptyMessage = document.createElement('p');
+                emptyMessage.className = 'players-empty';
+                emptyMessage.innerText = 'Añade jugadores para poder anunciar al ganador.';
+                list.appendChild(emptyMessage);
+                return;
+            }
+
+            jugadores.forEach((nombre, index) => {
+                const row = document.createElement('div');
+                row.className = 'player-row';
+
+                const winnerButton = document.createElement('button');
+                winnerButton.type = 'button';
+                winnerButton.className = 'player-win-button';
+                winnerButton.innerText = nombre;
+                winnerButton.setAttribute('aria-label', `Anunciar ganador: ${nombre}`);
+                winnerButton.addEventListener('click', () => anunciarGanador(nombre));
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'player-remove-button';
+                removeButton.innerText = '×';
+                removeButton.setAttribute('aria-label', `Quitar a ${nombre}`);
+                removeButton.addEventListener('click', () => {
+                    jugadores.splice(index, 1);
+                    renderizarJugadores();
+                });
+
+                row.append(winnerButton, removeButton);
+                list.appendChild(row);
+            });
+        }
+
+        function anunciarGanador(nombre) {
+            const overlay = document.getElementById('winnerOverlay');
+            document.getElementById('winnerMessage').innerText = `¡Felicidades, ${nombre}! ¡Has ganado!`;
+            overlay.hidden = false;
+            document.getElementById('winnerCloseButton').focus();
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const anuncio = new SpeechSynthesisUtterance(`¡Felicidades, ${nombre}! ¡Has ganado! ¡Wow!`);
+                anuncio.lang = 'es-ES';
+                anuncio.rate = 0.92;
+                anuncio.pitch = 1.1;
+                window.speechSynthesis.speak(anuncio);
+            }
+
+            reproducirCelebracion();
+            iniciarFuegosArtificiales();
+        }
+
+        function reproducirCelebracion() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            try {
+                const audio = new AudioContext();
+                const startTime = audio.currentTime;
+                const applauseBuffer = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
+                const noise = applauseBuffer.getChannelData(0);
+                for (let i = 0; i < noise.length; i++) noise[i] = Math.random() * 2 - 1;
+
+                for (let burst = 0; burst < 8; burst++) {
+                    const source = audio.createBufferSource();
+                    const filter = audio.createBiquadFilter();
+                    const gain = audio.createGain();
+                    const burstStart = startTime + burst * 0.22;
+                    source.buffer = applauseBuffer;
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 1200 + Math.random() * 900;
+                    gain.gain.setValueAtTime(0.0001, burstStart);
+                    gain.gain.exponentialRampToValueAtTime(0.12, burstStart + 0.025);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, burstStart + 0.16);
+                    source.connect(filter).connect(gain).connect(audio.destination);
+                    source.start(burstStart, Math.random() * 0.7, 0.15);
+                    source.stop(burstStart + 0.17);
+                }
+
+                for (let whistle = 0; whistle < 3; whistle++) {
+                    const oscillator = audio.createOscillator();
+                    const gain = audio.createGain();
+                    const whistleStart = startTime + whistle * 0.38;
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(1100, whistleStart);
+                    oscillator.frequency.exponentialRampToValueAtTime(1900, whistleStart + 0.22);
+                    oscillator.frequency.exponentialRampToValueAtTime(1350, whistleStart + 0.48);
+                    gain.gain.setValueAtTime(0.0001, whistleStart);
+                    gain.gain.exponentialRampToValueAtTime(0.07, whistleStart + 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, whistleStart + 0.5);
+                    oscillator.connect(gain).connect(audio.destination);
+                    oscillator.start(whistleStart);
+                    oscillator.stop(whistleStart + 0.51);
+                }
+
+                window.setTimeout(() => audio.close(), 2600);
+            } catch (error) {
+                console.warn('No se pudieron reproducir los efectos de celebración.', error);
+            }
+        }
+
+        function iniciarFuegosArtificiales() {
+            const canvas = document.getElementById('fireworksCanvas');
+            const context = canvas.getContext('2d');
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const particles = [];
+            let frame = 0;
+
+            canvas.width = window.innerWidth * window.devicePixelRatio;
+            canvas.height = window.innerHeight * window.devicePixelRatio;
+            context.scale(window.devicePixelRatio, window.devicePixelRatio);
+            context.fillStyle = 'rgba(15, 23, 42, 0.2)';
+            context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+            if (fireworksAnimation) cancelAnimationFrame(fireworksAnimation);
+
+            function explotar() {
+                const x = 50 + Math.random() * (window.innerWidth - 100);
+                const y = 60 + Math.random() * (window.innerHeight * 0.55);
+                const color = ['#facc15', '#fb7185', '#38bdf8', '#4ade80', '#c084fc'][Math.floor(Math.random() * 5)];
+                for (let i = 0; i < 42; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1 + Math.random() * 4;
+                    particles.push({
+                        x, y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 45 + Math.random() * 25,
+                        color
+                    });
+                }
+            }
+
+            function animar() {
+                context.fillStyle = 'rgba(15, 23, 42, 0.18)';
+                context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                if (frame % 24 === 0) explotar();
+
+                particles.forEach(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vy += 0.035;
+                    particle.life--;
+                    context.globalAlpha = Math.max(0, particle.life / 70);
+                    context.fillStyle = particle.color;
+                    context.beginPath();
+                    context.arc(particle.x, particle.y, 2.4, 0, Math.PI * 2);
+                    context.fill();
+                });
+                context.globalAlpha = 1;
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+
+                frame++;
+                if (!reducedMotion && !document.getElementById('winnerOverlay').hidden) {
+                    fireworksAnimation = requestAnimationFrame(animar);
+                }
+            }
+
+            animar();
+        }
+
+        function cerrarCelebracion() {
+            document.getElementById('winnerOverlay').hidden = true;
+            if (fireworksAnimation) cancelAnimationFrame(fireworksAnimation);
+            fireworksAnimation = null;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        document.getElementById('playerForm').addEventListener('submit', agregarJugador);
+        document.getElementById('winnerCloseButton').addEventListener('click', cerrarCelebracion);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !document.getElementById('winnerOverlay').hidden) cerrarCelebracion();
+        });
+
+        window.onload = inicializarJuego;
+    </script>
+</body>
+</html>
