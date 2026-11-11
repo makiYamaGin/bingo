@@ -97,7 +97,7 @@
         }
 
         .current-ball-container.spinning {
-            animation: girarBombo 0.4s infinite linear;
+            animation: girarBombo 20s infinite linear;
         }
 
         @keyframes girarBombo {
@@ -715,7 +715,7 @@
                 display.innerText = tempNum;
                 contadorGiro++;
                 
-                if (contadorGiro > 6) {
+                if (contadorGiro > 75) {
                     clearInterval(intervaloSorteo);
                     intervaloSorteo = null;
                     detenerSonidoBombo();
@@ -723,68 +723,90 @@
                     finalizarSacarBola();
                     nextBtn.disabled = false;
                 }
-            }, 120);
+            }, 200);
         }
 
-        function iniciarSonidoBombo() {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
+        // function iniciarSonidoBombo() {
+        //     const AudioContext = window.AudioContext || window.webkitAudioContext;
+        //     if (!AudioContext) return;
 
-            try {
-                detenerSonidoBombo();
-                const audio = new AudioContext();
-                const inicio = audio.currentTime;
-                const duracion = 0.88;
-                const buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.04), audio.sampleRate);
-                const ruido = buffer.getChannelData(0);
-                for (let i = 0; i < ruido.length; i++) ruido[i] = Math.random() * 2 - 1;
+        //     try {
+        //         detenerSonidoBombo();
+        //         const audio = new AudioContext();
+        //         const inicio = audio.currentTime;
+        //         const duracion = 15;
+        //         const buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.04), audio.sampleRate);
+        //         const ruido = buffer.getChannelData(0);
+        //         for (let i = 0; i < ruido.length; i++) ruido[i] = Math.random() * 2 - 1;
 
-                let time = inicio;
-                while (time < inicio + duracion) {
-                    time += 0.018 + Math.random() * 0.035;
-                    const impactTime = Math.min(time, inicio + duracion - 0.05);
+        //         let time = inicio;
+        //         while (time < inicio + duracion) {
+        //             time += 0.018 + Math.random() * 0.035;
+        //             const impactTime = Math.min(time, inicio + duracion - 0.05);
 
-                    const source = audio.createBufferSource();
-                    const filter = audio.createBiquadFilter();
-                    const gain = audio.createGain();
-                    source.buffer = buffer;
-                    filter.type = 'bandpass';
-                    filter.frequency.value = 700 + Math.random() * 1500;
-                    filter.Q.value = 0.7 + Math.random() * 1.2;
-                    gain.gain.setValueAtTime(0.0001, impactTime);
-                    gain.gain.linearRampToValueAtTime(0.035 + Math.random() * 0.045, impactTime + 0.003);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, impactTime + 0.035);
-                    source.connect(filter).connect(gain).connect(audio.destination);
-                    source.start(impactTime);
-                    source.stop(impactTime + 0.04);
+        //             const source = audio.createBufferSource();
+        //             const filter = audio.createBiquadFilter();
+        //             const gain = audio.createGain();
+        //             source.buffer = buffer;
+        //             filter.type = 'bandpass';
+        //             filter.frequency.value = 700 + Math.random() * 1500;
+        //             filter.Q.value = 0.7 + Math.random() * 1.2;
+        //             gain.gain.setValueAtTime(0.0001, impactTime);
+        //             gain.gain.linearRampToValueAtTime(0.035 + Math.random() * 0.045, impactTime + 0.003);
+        //             gain.gain.exponentialRampToValueAtTime(0.0001, impactTime + 0.035);
+        //             source.connect(filter).connect(gain).connect(audio.destination);
+        //             source.start(impactTime);
+        //             source.stop(impactTime + 0.04);
 
-                    const tap = audio.createOscillator();
-                    const tapGain = audio.createGain();
-                    tap.type = 'sine';
-                    tap.frequency.value = 180 + Math.random() * 360;
-                    tapGain.gain.setValueAtTime(0.0001, impactTime);
-                    tapGain.gain.linearRampToValueAtTime(0.025 + Math.random() * 0.025, impactTime + 0.002);
-                    tapGain.gain.exponentialRampToValueAtTime(0.0001, impactTime + 0.025);
-                    tap.connect(tapGain).connect(audio.destination);
-                    tap.start(impactTime);
-                    tap.stop(impactTime + 0.03);
-                }
+        //             const tap = audio.createOscillator();
+        //             const tapGain = audio.createGain();
+        //             tap.type = 'sine';
+        //             tap.frequency.value = 180 + Math.random() * 360;
+        //             tapGain.gain.setValueAtTime(0.0001, impactTime);
+        //             tapGain.gain.linearRampToValueAtTime(0.025 + Math.random() * 0.025, impactTime + 0.002);
+        //             tapGain.gain.exponentialRampToValueAtTime(0.0001, impactTime + 0.025);
+        //             tap.connect(tapGain).connect(audio.destination);
+        //             tap.start(impactTime);
+        //             tap.stop(impactTime + 0.03);
+        //         }
 
-                sonidoBombo = { audio };
-                window.setTimeout(() => {
-                    if (sonidoBombo?.audio === audio) detenerSonidoBombo();
-                }, duracion * 1000);
-            } catch (error) {
-                console.warn('No se pudo reproducir el sonido del bombo.', error);
-            }
-        }
+        //         sonidoBombo = { audio };
+        //         window.setTimeout(() => {
+        //             if (sonidoBombo?.audio === audio) detenerSonidoBombo();
+        //         }, duracion * 1000);
+        //     } catch (error) {
+        //         console.warn('No se pudo reproducir el sonido del bombo.', error);
+        //     }
+        // }
 
-        function detenerSonidoBombo() {
-            if (!sonidoBombo) return;
-            const sonidoActivo = sonidoBombo;
+        // function detenerSonidoBombo() {
+        //     if (!sonidoBombo) return;
+        //     const sonidoActivo = sonidoBombo;
+        //     sonidoBombo = null;
+        //     sonidoActivo.audio.close();
+        // }
+        
+        
+    function iniciarSonidoBombo() {
+        detenerSonidoBombo();
+
+        sonidoBombo = new Audio('bombo.wav');
+        sonidoBombo.loop = true;
+        sonidoBombo.volume = 0.7;
+
+        sonidoBombo.play().catch(error => {
+            console.error('No se pudo reproducir el sonido:', error);
+        });
+    }
+
+    function detenerSonidoBombo() {
+        if (sonidoBombo) {
+            sonidoBombo.pause();
+            sonidoBombo.currentTime = 0;
             sonidoBombo = null;
-            sonidoActivo.audio.close();
         }
+    }
+
 
         function finalizarSacarBola() {
             const randomIndex = Math.floor(Math.random() * bolasDisponibles.length);
